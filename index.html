@@ -36,19 +36,13 @@ body { font-family:'Kanit',sans-serif; background-color:#f5f7fb; color:var(--dar
 
 /* Main content */
 .main-content { margin-left:var(--sidebar-width); padding:20px; transition:var(--transition); }
-.header { display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background-color:white; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px; }
+.header { display:flex; justify-content:space-between; align-items:center; padding:15px 25px; background-color:white; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); margin-bottom:20px; flex-wrap: wrap; }
 .page-title { font-weight:600;color:var(--dark); font-size:1.5rem; }
 .header-buttons { display:flex; flex-wrap:wrap; gap:5px; }
 
-/* Active Filter Button */
-.header-buttons button.active-filter {
-    background-color: var(--secondary);
-    transform: translateY(-2px);
-}
-
 /* Buttons */
 .header-buttons button { display:none; align-items:center; justify-content:center; background:var(--accent); color:white; border:none; border-radius:6px; padding:4px 8px; cursor:pointer; font-size:0.9rem; transition:0.2s; }
-.header-buttons button:hover { opacity:0.85; }
+.header-buttons button:hover, .header-buttons button.active-filter { background-color: var(--secondary); transform: translateY(-2px); }
 
 /* Content Area */
 .content-area { background-color:white; border-radius:12px; box-shadow:0 4px 6px rgba(0,0,0,0.05); overflow:hidden; height:calc(100vh - 120px); position:relative; }
@@ -60,76 +54,26 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
 .welcome-message h3 { font-weight:500; margin-bottom:10px; color:var(--dark); }
 
 /* HUB Filter group */
-#hub-filters { display:flex; gap:5px; margin-top:5px; }
+#hub-filters { display:flex; flex-wrap:wrap; gap:5px; margin-top:5px; }
 
 /* Responsive */
 @media (max-width: 992px) {
-    .sidebar {
-        position: fixed;
-        left: -260px; /* ซ่อน sidebar */
-        z-index: 1001;
-        transition: all 0.3s ease;
-    }
-
-    .sidebar.active {
-        left: 0;
-    }
-
-    .main-content {
-        margin-left: 0;
-        padding: 15px;
-    }
-
-    .toggle-sidebar {
-        display: inline-flex;
-    }
-
-    .header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-
-    .header-buttons {
-        flex-wrap: wrap;
-        gap: 5px;
-    }
-
-    .content-area {
-        height: calc(100vh - 150px);
-    }
-
-    iframe {
-        height: 100%;
-    }
-
-    .welcome-message h3 {
-        font-size: 1.2rem;
-    }
-
-    .welcome-message i {
-        font-size: 3rem;
-    }
+    .sidebar { left:-260px; position: fixed; }
+    .sidebar.active { left:0; }
+    .main-content { margin-left:0; padding:15px; }
+    .toggle-sidebar { display:inline-flex; }
+    .header { flex-direction: column; align-items: flex-start; gap:10px; }
+    .content-area { height: calc(100vh - 150px); }
+    iframe { height: 100%; }
+    .welcome-message h3 { font-size:1.2rem; }
+    .welcome-message i { font-size:3rem; }
 }
 
 @media (max-width: 576px) {
-    .header-buttons button {
-        font-size: 0.75rem;
-        padding: 3px 6px;
-    }
-
-    .sidebar {
-        width: 220px;
-    }
-
-    .sidebar-header h2 {
-        font-size: 1.2rem;
-    }
-
-    .menu-item {
-        font-size: 0.9rem;
-        padding: 10px 12px;
-    }
+    .header-buttons button { font-size:0.75rem; padding:3px 6px; }
+    .sidebar { width:220px; }
+    .sidebar-header h2 { font-size:1.2rem; }
+    .menu-item { font-size:0.9rem; padding:10px 12px; }
 }
 </style>
 </head>
@@ -138,25 +82,15 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
-        <img src="static/2.png" alt="2 Logo"> <!-- ✅ เปลี่ยนเป็น relative -->
+        <img src="static/2.png" alt="2 Logo">
         <h2>DASHBOARD</h2>
     </div>
     <div class="sidebar-menu">
-        <a class="menu-item" onclick="loadPage('1-1.html', this)">
-            <i class="fas fa-cogs"></i> ADJUST MACHINE
-        </a>
-        <a class="menu-item" onclick="loadPage('1-2.html', this)">
-            <i class="fas fa-tools"></i> BURR ALL
-        </a>
-        <a class="menu-item" onclick="loadPage('1-3.html', this)">
-            <i class="fas fa-exclamation-triangle"></i> CONTAM ALL
-        </a>
-        <a class="menu-item" onclick="loadPage('1-4.html', this)">
-            <i class="fas fa-scroll"></i> Dent & Scratch ALL
-        </a>
-        <a class="menu-item" onclick="loadPage('1-5.html', this)">
-            <i class="fas fa-database"></i> HUB ALL
-        </a>
+        <a class="menu-item" onclick="loadPage('1-1.html', this)"><i class="fas fa-cogs"></i> ADJUST MACHINE </a>
+        <a class="menu-item" onclick="loadPage('1-2.html', this)"><i class="fas fa-tools"></i> BURR ALL </a>
+        <a class="menu-item" onclick="loadPage('1-3.html', this)"><i class="fas fa-exclamation-triangle"></i> CONTAM ALL </a>
+        <a class="menu-item" onclick="loadPage('1-4.html', this)"><i class="fas fa-scroll"></i> Dent & Scratch ALL </a>
+        <a class="menu-item" onclick="loadPage('1-5.html', this)"><i class="fas fa-database"></i> HUB ALL </a>
     </div>
 </div>
 
@@ -168,34 +102,8 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
             <span class="page-title" id="page-title">Dashboard</span>
         </div>
         <div class="header-buttons" id="header-buttons">
-            <!-- ปุ่ม Filter เมนูอื่น -->
-            <button id="fcc-btn"><i class="fas fa-filter"></i> FCC</button>
-            <button id="stt-btn"><i class="fas fa-filter"></i> STT</button>
-            <button id="sttca-btn"><i class="fas fa-filter"></i> STTCA</button>
-            <button id="fdb-btn"><i class="fas fa-filter"></i> FDB Fan Motor</button>
-            <button id="sp-btn"><i class="fas fa-filter"></i> SP</button>
-            <button id="stt7-btn"><i class="fas fa-filter"></i> STT7</button>
-            <button id="bushing-btn"><i class="fas fa-filter"></i> BUSHING</button>
-            <button id="sl_pmc-btn"><i class="fas fa-filter"></i> SL PMC</button>
-            <button id="otr-btn"><i class="fas fa-filter"></i> OTR</button>
-
-            <!-- ปุ่ม Filter HUB ALL -->
-            <div id="hub-filters">
-              <button id="fcc-btn"><i class="fas fa-filter"></i> FCC</button>
-              <button id="fcc(al)-btn"><i class="fas fa-filter"></i> FCC(AL)</button>
-              <button id="fcc(hs)-btn"><i class="fas fa-filter"></i> FCC(HS)</button>
-              <button id="fcc(steel)-btn"><i class="fas fa-filter"></i> FCC(STEEL)</button>
-              <button id="stt-btn"><i class="fas fa-filter"></i> STT</button>
-              <button id="sttca-btn"><i class="fas fa-filter"></i> STTCA</button>
-              <button id="fdb-btn"><i class="fas fa-filter"></i> FDB Fan Motor</button>
-              <button id="sp-btn"><i class="fas fa-filter"></i> SP</button>
-              <button id="stt7-btn"><i class="fas fa-filter"></i> STT7</button>
-              <button id="bushing-btn"><i class="fas fa-filter"></i> BUSHING</button>
-              <button id="sl_pmc-btn"><i class="fas fa-filter"></i> SL PMC</button>
-              <button id="otr-btn"><i class="fas fa-filter"></i> OTR</button>
-              <button id="shop-btn"><i class="fas fa-filter"></i> SHOP</button>
-              <button id="shop+bu-btn"><i class="fas fa-filter"></i> SHOP+BU</button>
-            </div>
+            <!-- Buttons will be dynamically shown -->
+            <div id="hub-filters"></div>
         </div>
     </div>
     <div class="content-area">
@@ -210,14 +118,16 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
 
 <script>
 let currentActiveItem = null;
-let currentFolder = ''; 
-
-const allButtons = document.querySelectorAll('.header-buttons > button');
-const hubButtons = document.querySelectorAll('#hub-filters button');
+let currentFolder = '';
 const frame = document.getElementById("content-frame");
 const welcomeMsg = document.getElementById("welcome-message");
+const hubFilters = document.getElementById("hub-filters");
 
-function loadPage(file, element) {
+function toggleSidebar() {
+    document.querySelector('.sidebar').classList.toggle('active');
+}
+
+function loadPage(file, element){
     welcomeMsg.style.display = 'none';
     frame.style.display = 'block';
     frame.classList.add('loading');
@@ -229,76 +139,43 @@ function loadPage(file, element) {
     const titleText = element.textContent.trim();
     document.getElementById('page-title').textContent = titleText;
 
-    // ซ่อนปุ่มทั้งหมดก่อน
-    allButtons.forEach(btn=>btn.style.display='none');
-    hubButtons.forEach(btn=>btn.style.display='none');
-    allButtons.forEach(btn=>btn.classList.remove('active-filter'));
-    hubButtons.forEach(btn=>btn.classList.remove('active-filter'));
+    // ซ่อนปุ่มทั้งหมด
+    hubFilters.innerHTML = '';
+    currentFolder = '';
 
-    if(titleText === "HUB ALL"){
-        hubButtons.forEach(btn=>btn.style.display='inline-flex');
-        currentFolder = 'hub';
-    } else {
-        // Map ชื่อเมนู -> โฟลเดอร์
-        const menuMap = {
-            "ADJUST MACHINE": { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","sl_pmc-btn","otr-btn"], folder:"adjust" },
-            "BURR ALL":       { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","otr-btn"], folder:"burr" },
-            "CONTAM ALL":     { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","sl_pmc-btn","otr-btn"], folder:"contam" },
-            "Dent & Scratch ALL": { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","sl_pmc-btn","otr-btn"], folder:"dent&scratch" }
-        };
-        if(menuMap[titleText]){
-            menuMap[titleText].buttons.forEach(id=>document.getElementById(id).style.display='inline-flex');
-            currentFolder = menuMap[titleText].folder;
-        } else {
-            currentFolder = '';
-        }
+    // Map เมนู -> folder + buttons
+    const menuMap = {
+        "ADJUST MACHINE": { folder:"adjust", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
+        "BURR ALL": { folder:"burr", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","otr"] },
+        "CONTAM ALL": { folder:"contam", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
+        "Dent & Scratch ALL": { folder:"dent&scratch", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
+        "HUB ALL": { folder:"hub", buttons:["fcc","fcc_al","fcc_hs","fcc_steel","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr","shop","shop_bu"] }
+    };
+
+    if(menuMap[titleText]){
+        currentFolder = menuMap[titleText].folder;
+        menuMap[titleText].buttons.forEach(id=>{
+            const btn = document.createElement("button");
+            btn.id = id+"-btn";
+            btn.textContent = id.replace(/_/g," ").toUpperCase();
+            btn.style.display = 'inline-flex';
+            btn.addEventListener('click',()=>{
+                [...hubFilters.querySelectorAll("button")].forEach(b=>b.classList.remove('active-filter'));
+                btn.classList.add('active-filter');
+                let fileName = id + ".html";
+                frame.src = (currentFolder==="hub")?`static/hub/${fileName}`:`static/${currentFolder}/${fileName}`;
+                document.getElementById("page-title").textContent = btn.textContent;
+            });
+            hubFilters.appendChild(btn);
+        });
     }
 
-    setTimeout(()=> {
-        frame.src = 'static/' + file; // ✅ เปลี่ยนเป็น relative
+    // โหลด iframe หลัก
+    setTimeout(()=>{
+        frame.src = 'static/'+file;
         frame.onload = ()=> frame.classList.remove('loading');
-    }, 100);
+    },100);
 }
-
-// Event listener สำหรับปุ่ม filter
-[...allButtons, ...hubButtons].forEach(btn => {
-    btn.addEventListener('click', () => {
-        [...allButtons, ...hubButtons].forEach(b => b.classList.remove('active-filter'));
-        btn.classList.add('active-filter');
-
-        if(currentFolder === '') return;
-
-        const fileMap = {
-            "fcc-btn":"fcc.html",
-            "stt-btn":"stt.html",
-            "sttca-btn":"sttca.html",
-            "fdb-btn":"fdb.html",
-            "sp-btn":"sp.html",
-            "stt7-btn":"stt7.html",
-            "bushing-btn":"bushing.html",
-            "sl_pmc-btn":"sl_pmc.html",
-            "otr-btn":"otr.html",
-            "fcc(al)-btn":"fcc(al).html",
-            "fcc(hs)-btn":"fcc(hs).html",
-            "fcc(steel)-btn":"fcc(steel).html",
-            "shop-btn":"shop.html",
-            "shop+bu-btn":"shop+bu.html"
-        };
-
-        let fileName = fileMap[btn.id];
-        if(currentFolder === 'hub'){
-            frame.src = `static/hub/${fileName}`;
-        } else {
-            frame.src = `static/${currentFolder}/${fileName}`;
-        }
-        document.getElementById("page-title").textContent = btn.textContent.trim();
-    });
-});
-
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
-}
-
 </script>
 </body>
 </html>
