@@ -405,7 +405,7 @@ function renderTableVertical(tableId,data,type="day"){
 
 // run
 document.addEventListener("DOMContentLoaded", () => {
-  const excelPath = encodeURI("../Burr_All.xlsx");
+  const excelPath = "static/Burr_All.xlsx";
   loadExcel(excelPath, ({ dailyData, monthlyData }) => {
       renderTableVertical("tableMonth", monthlyData, "month");
       createChart(document.getElementById("barChartMonth"), monthlyData, true);
@@ -418,3 +418,4 @@ document.addEventListener("DOMContentLoaded", () => {
 </script>
 </body>
 </html>
+
