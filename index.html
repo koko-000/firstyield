@@ -95,14 +95,13 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
 </div>
 
 <!-- Main content -->
-<div class="main-content">
+<div class="main-content" onclick="closeSidebar()">
     <div class="header">
         <div>
-            <button class="toggle-sidebar" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+            <button class="toggle-sidebar" onclick="toggleSidebar(event)"><i class="fas fa-bars"></i></button>
             <span class="page-title" id="page-title">Dashboard</span>
         </div>
         <div class="header-buttons" id="header-buttons">
-            <!-- Buttons will be dynamically shown -->
             <div id="hub-filters"></div>
         </div>
     </div>
@@ -123,8 +122,17 @@ const frame = document.getElementById("content-frame");
 const welcomeMsg = document.getElementById("welcome-message");
 const hubFilters = document.getElementById("hub-filters");
 
-function toggleSidebar() {
-    document.querySelector('.sidebar').classList.toggle('active');
+function toggleSidebar(e) {
+    e.stopPropagation(); // ไม่ให้คลิกหลุดไป main-content
+    const sidebar = document.querySelector('.sidebar');
+    sidebar.classList.toggle('active');
+}
+
+function closeSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    if(window.innerWidth <= 992 && sidebar.classList.contains('active')){
+        sidebar.classList.remove('active');
+    }
 }
 
 function loadPage(file, element){
@@ -139,17 +147,15 @@ function loadPage(file, element){
     const titleText = element.textContent.trim();
     document.getElementById('page-title').textContent = titleText;
 
-    // ซ่อนปุ่มทั้งหมด
     hubFilters.innerHTML = '';
     currentFolder = '';
 
-    // Map เมนู -> folder + buttons
     const menuMap = {
         "ADJUST MACHINE": { folder:"adjust", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
         "BURR ALL": { folder:"burr", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","otr"] },
         "CONTAM ALL": { folder:"contam", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
         "Dent & Scratch ALL": { folder:"dent&scratch", buttons:["fcc","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr"] },
-        "HUB ALL": { folder:"hub", buttons:["fcc","fcc_al","fcc_hs","fcc_steel","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr","shop","shop_bu"] }
+        "HUB ALL": { folder:"hub", buttons:["fcc","fcc(al)","fcc(hs)","fcc(steel)","stt","sttca","fdb","sp","stt7","bushing","sl_pmc","otr","shop","shop+bu"] }
     };
 
     if(menuMap[titleText]){
@@ -170,7 +176,6 @@ function loadPage(file, element){
         });
     }
 
-    // โหลด iframe หลัก
     setTimeout(()=>{
         frame.src = 'static/'+file;
         frame.onload = ()=> frame.classList.remove('loading');
