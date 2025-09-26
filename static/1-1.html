@@ -405,7 +405,7 @@
 
   // Run
   document.addEventListener("DOMContentLoaded", () => {
-  const excelPath = "static/Adjust_Machine.xlsx";
+  const excelPath = "Adjust_Machine.xlsx";
   loadExcel(excelPath, ({ dailyData, monthlyData }) => {
       renderTableVertical("tableMonth", monthlyData, "month");
       createChart(document.getElementById("barChartMonth"), monthlyData, true);
@@ -418,4 +418,5 @@
 </script>
 </body>
 </html>
+
 
