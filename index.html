@@ -68,7 +68,7 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
 <!-- Sidebar -->
 <div class="sidebar">
     <div class="sidebar-header">
-        <img src="static/2.png" alt="2 Logo">
+        <img src="static/2.png" alt="2 Logo"> <!-- ✅ เปลี่ยนเป็น relative -->
         <h2>DASHBOARD</h2>
     </div>
     <div class="sidebar-menu">
@@ -84,7 +84,7 @@ iframe { width:100%; height:100%; border:none; transition:opacity 0.3s ease; dis
         <a class="menu-item" onclick="loadPage('1-4.html', this)">
             <i class="fas fa-scroll"></i> Dent & Scratch ALL
         </a>
-        <a class="menu-item" onclick="loadPage('static/1-5.html', this)">
+        <a class="menu-item" onclick="loadPage('1-5.html', this)">
             <i class="fas fa-database"></i> HUB ALL
         </a>
     </div>
@@ -169,7 +169,7 @@ function loadPage(file, element) {
         hubButtons.forEach(btn=>btn.style.display='inline-flex');
         currentFolder = 'hub';
     } else {
-        // Map ชื่อเมนู -> โฟลเดอร์ที่คุณต้องการ
+        // Map ชื่อเมนู -> โฟลเดอร์
         const menuMap = {
             "ADJUST MACHINE": { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","sl_pmc-btn","otr-btn"], folder:"adjust" },
             "BURR ALL":       { buttons:["fcc-btn","stt-btn","sttca-btn","fdb-btn","sp-btn","stt7-btn","bushing-btn","otr-btn"], folder:"burr" },
@@ -185,7 +185,7 @@ function loadPage(file, element) {
     }
 
     setTimeout(()=> {
-        frame.src = 'static/' + file;
+        frame.src = 'static/' + file; // ✅ เปลี่ยนเป็น relative
         frame.onload = ()=> frame.classList.remove('loading');
     }, 100);
 }
@@ -211,7 +211,6 @@ function loadPage(file, element) {
             "fcc(al)-btn":"fcc(al).html",
             "fcc(hs)-btn":"fcc(hs).html",
             "fcc(steel)-btn":"fcc(steel).html",
-            "otr-btn":"otr.html",
             "shop-btn":"shop.html",
             "shop+bu-btn":"shop+bu.html"
         };
@@ -232,4 +231,3 @@ function toggleSidebar() {
 </script>
 </body>
 </html>
-

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<title>CONTAM Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+<style>
+  body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    background: #f4f6f9; 
+  }
+
+  /* container หลัก */
+  .container { 
+    max-width: 1850px; 
+    margin: 0 auto; 
+    padding: 1rem; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 1rem; 
+  }
+
+  /* chart-row สำหรับ Monthly + Daily ให้ side by side */
+  .chart-row {
+    display: flex; 
+    gap: 1rem; 
+    overflow-x: auto; 
+    padding-bottom: 1rem;
+  }
+
+  /* chart-side สำหรับ Monthly / Daily */
+  .chart-side {
+    flex: 0 0 700px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: #fff;
+    border-radius: 8px;
+    padding: 0.5rem;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+
+  /* section header */
+  .section-header { 
+    background: #007bff; 
+    color: #fff; 
+    font-weight: 700; 
+    padding: 6px 8px; 
+    border-radius: 6px; 
+    font-size: 1rem; 
+  }
+
+  /* table-wrapper */
+  .table-wrapper { 
+    background: #fff; 
+    border-radius: 8px; 
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08); 
+    padding: 4px; 
+    overflow-x: auto; 
+  }
+
+  /* table */
+  table { 
+    border-collapse: collapse; 
+    width: 100%; 
+    font-size: 0.9rem; 
+  }
+
+  th, td { 
+    border: 1px solid #d0d6de; 
+    padding: 6px 8px; 
+    text-align: center; 
+    white-space: nowrap; 
+  }
+
+  tr:nth-child(even) { 
+    background: #fbfdff; 
+  }
+
+  td:first-child, th:first-child { 
+    background: #007bff; 
+    color: #fff; 
+    position: sticky; 
+    left: 0; 
+    z-index: 1; 
+    font-weight: 700; 
+  }
+
+  /* canvas */
+  canvas { 
+    width: 100% !important; 
+    max-height: 500px; 
+    background: #fff; 
+    border-radius: 8px; 
+    padding: 4px; 
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="chart-row">
+    <!-- Monthly Trend -->
+    <div class="chart-side">
+      <div class="section-header">CONTAM : Monthly Trend (2024-Now)</div>
+      <canvas id="barChartMonth"></canvas>
+      <div class="table-wrapper">
+        <table id="tableMonth"></table>
+      </div>
+    </div>
+
+    <!-- Daily Trend -->
+    <div class="chart-side">
+      <div class="section-header">CONTAM : Daily Trend (LastMonth)</div>
+      <canvas id="barChartDay"></canvas>
+      <div class="table-wrapper">
+        <table id="tableDay"></table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+Chart.register(ChartDataLabels);
+
+function formatNumber(val, decimals=2){
+  if(val==="" || val==null || isNaN(val)) return "";
+  return Number(val).toLocaleString("en-US", {minimumFractionDigits: decimals, maximumFractionDigits: decimals});
+}
+
+function parseExcelDate(val){
+  if(typeof val==="number"){
+    const d = XLSX.SSF.parse_date_code(val);
+    if(d) return new Date(d.y,d.m-1,d.d);
+  }
+  if(typeof val==="string"){
+    let d = new Date(val);
+    if(!isNaN(d)) return d;
+  }
+  return null;
+}
+
+function parseMonthText(val){
+  const match = /([a-zA-Z]+)'(\d{2})/.exec(val);
+  if(match){
+    const monthStr = match[1];
+    const year = 2000 + parseInt(match[2]);
+    const month = new Date(Date.parse(monthStr +" 1, 2000")).getMonth();
+    return new Date(year,month,1);
+  }
+  return null;
+}
+
+function formatDateForTable(val,type="day"){
+  if(type==="month") return val;
+  const d = parseExcelDate(val);
+  if(!d) return val;
+  if(type==="day") return String(d.getDate()).padStart(2,"0");
+  return val;
+}
+
+// โหลด Excel แล้วคืน sheetData, headerRow, metrics
+async function loadExcel(filePath){
+  const response = await fetch(filePath);
+  const arrayBuffer = await response.arrayBuffer();
+  const wb = XLSX.read(arrayBuffer,{type:"array"});
+  const sheet = wb.Sheets[wb.SheetNames[0]];
+  const sheetData = XLSX.utils.sheet_to_json(sheet,{header:1,defval:""});
+  const headerRow = sheetData[42]; // ปรับตาม row header
+  const metrics = ["Input Qty.","Reject Qty.","% YIELD NG","Reject Content","M227 : ALL SURFACE  WHITE CONTAM ",
+                   "M228 : ALL SURFACE  YELLOW CONTAM ","M225 : ALL SURFACE  OIL CONTAM ","M226 : ALL SURFACE  STICKY CONTAM ","Target"];
+  return {sheetData, headerRow, metrics};
+}
+
+// ฟังก์ชันรวมสำหรับ Daily / Monthly
+function extractData(sheetData, headerRow, metrics, startCol, endCol, type="month"){
+  const dates = [];
+  for(let c=startCol;c<=endCol;c++){
+    const colVal = headerRow[c];
+    let dateObj = (type==="month") ? parseMonthText(colVal) : parseExcelDate(colVal);
+    if(dateObj){
+      if(type==="month"){
+        if(dateObj.getFullYear()>=2024) dates.push({label:colVal, idx:c});
+      } else {
+        dates.push({label:colVal, idx:c, dateObj});
+      }
+    }
+  }
+
+  // สำหรับ daily → filter แค่เดือนล่าสุด
+  let useDates = dates;
+  if(type==="day" && dates.length){
+    const lastDate = [...dates].sort((a,b)=>b.dateObj - a.dateObj)[0].dateObj;
+    const lastMonth = lastDate.getMonth();
+    const lastYear  = lastDate.getFullYear();
+    useDates = dates.filter(d => d.dateObj.getMonth()===lastMonth && d.dateObj.getFullYear()===lastYear);
+  }
+
+  // map metrics
+  const result = useDates.map(d=>{
+    const obj = {Date:d.label};
+    metrics.forEach((m, idx)=>{
+      const row = sheetData[43+idx]; // ขึ้นกับ row ของ metrics
+      let val = row[d.idx] || 0;
+      if(val===""||val==null) val=0;
+      else if(m==="Target") val=Number(val)*100;
+      else if(m!=="% YIELD NG" && !m.includes("CONTAM") && m!=="Reject Content") val=Number(val);
+      obj[m] = val;
+    });
+    const input = Number(obj["Input Qty."])||0;
+    const reject = Number(obj["Reject Qty."])||0;
+    obj["% YIELD NG"] = input>0 ? parseFloat(((reject/input)*100).toFixed(2)) : 0;
+    obj["Target"] = parseFloat((obj["Target"]||0).toFixed(2));
+    return obj;
+  });
+
+  return result;
+}
+
+// render table
+function renderTableVertical(tableId,data,type="day"){
+  const table = document.getElementById(tableId);
+  table.innerHTML="";
+  if(!data.length) return;
+  const headersOrder = ["Date","Input Qty.","Reject Qty.","% YIELD NG","Reject Content","M227 : ALL SURFACE  WHITE CONTAM ",
+                        "M228 : ALL SURFACE  YELLOW CONTAM ","M225 : ALL SURFACE  OIL CONTAM ","M226 : ALL SURFACE  STICKY CONTAM ","Target"];
+  const rows = headersOrder.map(h=>{
+    const cells = data.map(r=>{
+      let val = r[h]!==undefined?r[h]:"";
+      if(h==="Date") val = formatDateForTable(val,type);
+      else if(h==="Input Qty." || h==="Reject Qty." || h.includes("CONTAM")) val = (val==="") ? "" : formatNumber(val,0);
+      else if(h==="% YIELD NG" || h==="Target") val = (val==="") ? "" : formatNumber(val,2) + "%";
+      return `<td>${val}</td>`;
+    }).join("");
+    return `<tr><td>${h}</td>${cells}</tr>`;
+  }).join("");
+  table.innerHTML=`<tbody>${rows}</tbody>`;
+}
+
+function createChart(ctx, data, labelKey, isMonth=true, y1Min=null, y1Max=null) {
+  // กำหนดค่า default ถ้าไม่ส่ง
+  if(y1Min === null) y1Min = isMonth ? 0 : 0;
+  if(y1Max === null) y1Max = isMonth ? 0.16 : 0.3;
+
+  return new Chart(ctx, {
+    type:"bar",
+    data:{
+      labels:data.map(r=>formatDateForTable(r[labelKey], isMonth ? "month":"day")),
+      datasets:[
+        { label:"WHITE CONTAM", type:"bar", data:data.map(r=>Number(r["M227 : ALL SURFACE  WHITE CONTAM "])),
+          backgroundColor:"#FFFACD", yAxisID:"y", stack:"Contam", order:2, datalabels:{display:false} },
+        { label:"YELLOW CONTAM", type:"bar", data:data.map(r=>Number(r["M228 : ALL SURFACE  YELLOW CONTAM "])),
+          backgroundColor:"#FFDAB9", yAxisID:"y", stack:"Contam", order:2, datalabels:{display:false} },
+        { label:"OIL CONTAM", type:"bar", data:data.map(r=>Number(r["M225 : ALL SURFACE  OIL CONTAM "])),
+          backgroundColor:"#00FFFF", yAxisID:"y", stack:"Contam", order:2, datalabels:{display:false} },
+        { label:"STICKY CONTAM", type:"bar", data:data.map(r=>Number(r["M226 : ALL SURFACE  STICKY CONTAM "])),
+          backgroundColor:"#E6E6FA", yAxisID:"y", stack:"Contam", order:2, datalabels:{display:false} },
+        { label:"% YIELD NG", type:"line", data:data.map(r=>r["% YIELD NG"]),
+          borderColor:"Magenta", backgroundColor:"rgba(255,0,255,0.2)", borderWidth:3, tension:0.2, yAxisID:"y1", order:1,
+          datalabels:{display:true,align:'top',anchor:'end',offset:10,rotation:-90,color:"Magenta",formatter:v=>formatNumber(v,2)+"%"} },
+        { label:"Target", type:"line", data:data.map(r=>r["Target"]),
+          borderColor:"#00FA9A", backgroundColor:"rgba(0,250,154,0.2)", borderDash:[5,5], borderWidth:3, tension:0.3, yAxisID:"y1", order:1,
+          datalabels:{display:false} }
+      ]
+    },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            display: true,
+            position: "top",
+            align: "center",
+            labels: {
+              usePointStyle: true,
+              pointStyle: function(context) {
+                if (context.datasetIndex === 0) return 'rect';
+                return 'line';
+              },
+              padding: 20,
+              font: {
+                size: 12
+              },
+              generateLabels: function(chart) {
+                const datasets = chart.data.datasets;
+                return datasets.map((dataset, index) => {
+                  let pointStyle = 'line';
+                  let borderDash = [];
+                  
+                  if (dataset.type === 'bar') {
+                    pointStyle = 'rect';
+                  } else if (dataset.borderDash) {
+                    borderDash = dataset.borderDash;
+                  }
+
+                  return {
+                    text: dataset.label,
+                    fillStyle: dataset.backgroundColor,
+                    strokeStyle: dataset.borderColor,
+                    lineWidth: dataset.type === 'line' ? 3 : 1,
+                    pointStyle: pointStyle,
+                    lineDash: borderDash,
+                    datasetIndex: index
+                  };
+                });
+              }
+            }
+          },
+          datalabels: {}
+        },
+        scales: {
+          x: {
+            ticks: {
+              maxRotation: 90,
+              minRotation: 90
+            }
+          },
+          y: {
+            beginAtZero: true,
+            position: "left",
+            title: {
+              display: true,
+              text: "Qty"
+            }
+          },
+          y1: {
+            beginAtZero: false,
+            min: y1Min,
+            max: y1Max,
+            position: "right",
+            grid: {
+              drawOnChartArea: false
+            },
+            title: {
+              display: true,
+              text: "%"
+            },
+            ticks: {
+              callback: v => formatNumber(v, 2) + "%"
+            }
+          }
+        }
+      }
+    });
+  }
+
+
+// run
+document.addEventListener("DOMContentLoaded",async ()=>{
+  try{
+    const filePath = "static/Contam_All.xlsx"; 
+    const {sheetData, headerRow, metrics} = await loadExcel(filePath);
+    const dailyData = extractData(sheetData, headerRow, metrics, XLSX.utils.decode_col("DN"), XLSX.utils.decode_col("ER"), "day");
+    const monthlyData = extractData(sheetData, headerRow, metrics, XLSX.utils.decode_col("CT"), XLSX.utils.decode_col("DM"), "month");
+    
+    renderTableVertical("tableMonth",monthlyData,"month");
+    createChart(document.getElementById("barChartMonth"), monthlyData, "Date", true);
+    renderTableVertical("tableDay",dailyData,"day");
+    createChart(document.getElementById("barChartDay"), dailyData, "Date", false);
+    
+  }catch(err){ console.error(err); alert("โหลดไฟล์ล้มเหลว"); }
+});
+</script>
+</body>
+</html>
